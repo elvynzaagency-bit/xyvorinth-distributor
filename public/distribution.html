@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>XYVORINTH Distribution Center</title>
+<style>
+body{margin:0;background:#090714;color:#fff;font-family:Arial,sans-serif;padding:20px}
+h1{font-size:24px;margin-bottom:6px}
+.sub{color:#9b94b5;margin-bottom:24px}
+.card{background:linear-gradient(145deg,#17122a,#0f0b1c);border:1px solid #30244d;border-radius:18px;padding:18px;margin-bottom:14px}
+.title{font-size:19px;font-weight:700}
+.artist{color:#b9afd0;margin-top:5px}
+.status{display:inline-block;margin-top:12px;padding:6px 10px;border-radius:20px;background:#14532d;color:#86efac;font-size:12px;font-weight:700}
+button{width:100%;margin-top:14px;padding:13px;border:0;border-radius:12px;background:#7c3aed;color:white;font-weight:700;font-size:14px}
+.empty{text-align:center;color:#8d86a5;padding:40px 10px}
+</style>
+</head>
+<body>
+
+<h1>🚀 Distribution Center</h1>
+<div class="sub">Manage your distributed releases</div>
+
+<div id="releases"></div>
+
+<script>
+function downloadPackage(title, artist) {
+  const safeTitle = title.replace(/[^a-zA-Z0-9_-]/g, '-');
+  const safeArtist = artist.replace(/[^a-zA-Z0-9_-]/g, '-');
+  location.href = `/packages/${safeTitle}-${safeArtist}.zip`;
+}
+
+async function load() {
+  const box = document.getElementById('releases');
+
+  try {
+    const res = await fetch('/api/releases');
+    const data = await res.json();
+    const releases = data.releases || [];
+
+    const distributed = releases.filter(r => r.status === 'Distributed');
+
+    if (!distributed.length) {
+      box.innerHTML = '<div class="empty">No distributed releases yet.</div>';
+      return;
+    }
+
+    box.innerHTML = distributed.map(r => `
+      <div class="card">
+        <div class="title">${r.title}</div>
+        <div class="artist">${r.artist}</div>
+        <div class="status">● DISTRIBUTED</div>
+        <button onclick="location.href='/details.html?id=${encodeURIComponent(r.id)}'">
+          View Release
+        </button>
+        <button onclick="downloadPackage('${r.title}', '${r.artist}')">
+          📦 Download Package
+        </button>
+      </div>
+    `).join('');
+
+  } catch (e) {
+    box.innerHTML = '<div class="empty">Unable to load releases.</div>';
+  }
+}
+
+load();
+</script>
+
+</body>
+</html>

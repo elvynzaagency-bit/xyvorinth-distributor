@@ -1,0 +1,10 @@
+{
+  "availableBalance": 4.5,
+  "pendingBalance": 0,
+  "minimumPayout": 10,
+  "currency": "USD",
+  "payouts": [],
+  "creditedRoyaltyIds": [
+    "ROY-1788534293840"
+  ]
+}

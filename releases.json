@@ -1,0 +1,32 @@
+[
+  {
+    "id": "XYV-1788532915003",
+    "title": "LOSE SINGNEL",
+    "artist": "XYVORINTH",
+    "releaseType": "Single",
+    "releaseDate": "2026-08-29",
+    "genre": "Electronic",
+    "language": "English",
+    "audio": {
+      "originalName": "Lost Signal - RouteNote FLAC.flac",
+      "storedName": "1788532913390-Lost_Signal_-_RouteNote_FLAC.flac",
+      "size": 20365169,
+      "format": "flac",
+      "quality": {
+        "codec": "flac",
+        "sampleRate": 44100,
+        "channels": 2,
+        "bitrate": null,
+        "bitDepth": null
+      }
+    },
+    "cover": {
+      "originalName": "1000065711.jpg",
+      "storedName": "1788532913957-1000065711.jpg",
+      "size": 1930965
+    },
+    "status": "Distributed",
+    "uploadedAt": "2026-09-04T14:41:55.003Z",
+    "statusUpdatedAt": "2026-09-04T14:56:35.440Z"
+  }
+]

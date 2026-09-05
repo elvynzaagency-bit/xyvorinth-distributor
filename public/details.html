@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>XYVORINTH — Release Details</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(circle at top, #24113d 0%, #090611 45%, #030207 100%);
+      color: white;
+      min-height: 100vh;
+      padding: 22px 15px 40px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      gap: 10px;
+    }
+
+    .logo {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .online {
+      font-size: 11px;
+      color: #65ff9a;
+      background: rgba(101,255,154,.08);
+      border: 1px solid rgba(101,255,154,.2);
+      padding: 7px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .card {
+      background: rgba(255,255,255,.055);
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 22px;
+      padding: 18px;
+      backdrop-filter: blur(15px);
+    }
+
+    .cover {
+      width: 100%;
+      max-width: 330px;
+      aspect-ratio: 1;
+      display: block;
+      margin: 0 auto 20px;
+      border-radius: 20px;
+      object-fit: cover;
+      background: #17131f;
+    }
+
+    .title {
+      font-size: 27px;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 7px;
+    }
+
+    .artist {
+      color: #b8b1c5;
+      font-size: 15px;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .status {
+      display: block;
+      width: fit-content;
+      margin: 0 auto 22px;
+      font-size: 12px;
+      padding: 7px 12px;
+      border-radius: 15px;
+      background: rgba(255,180,70,.12);
+      color: #ffc56b;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 20px 0 10px;
+      color: #e8e3ee;
+    }
+
+    .details {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 9px;
+    }
+
+    .detail {
+      background: rgba(0,0,0,.22);
+      border-radius: 12px;
+      padding: 11px;
+    }
+
+    .label {
+      color: #81798e;
+      font-size: 10px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    .value {
+      color: #eeeaf3;
+      font-size: 12px;
+      word-break: break-word;
+      line-height: 1.4;
+    }
+
+    .audio-box {
+      background: rgba(0,0,0,.22);
+      border-radius: 14px;
+      padding: 13px;
+    }
+
+    .audio-name {
+      font-size: 13px;
+      color: #eeeaf3;
+      word-break: break-word;
+      margin-bottom: 10px;
+    }
+
+    audio {
+      width: 100%;
+    }
+
+    .back {
+      display: block;
+      margin-top: 18px;
+      padding: 13px 18px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #8d35ff, #e52cff);
+      color: white;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .error {
+      text-align: center;
+      padding: 35px 20px;
+      color: #ff7185;
+    }
+
+    @media (max-width: 430px) {
+      .details {
+        grid-template-columns: 1fr;
+      }
+
+      .title {
+        font-size: 23px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <header>
+      <div class="logo">XYVORINTH Distribution</div>
+      <div class="online">● System Online</div>
+    </header>
+
+    <div id="content">
+      <div class="card">
+        Loading release...
+      </div>
+    </div>
+
+  </div>
+
+  
+<div id="managementBox" style="margin-top:20px;padding:18px;border-radius:16px;background:#171225;border:1px solid #33254f;">
+  <div style="font-size:13px;color:#aaa;margin-bottom:12px;">Release Management</div>
+  <div style="display:flex;gap:10px;">
+    <button id="approveBtn" onclick="updateStatus('Approved')" style="flex:1;padding:13px;border:0;border-radius:12px;background:#22c55e;color:white;font-weight:700;">
+      ✓ Approve
+    </button>
+    <button id="rejectBtn" onclick="updateStatus('Rejected')" style="flex:1;padding:13px;border:0;border-radius:12px;background:#ef4444;color:white;font-weight:700;">
+      ✕ Reject
+    </button>
+  </div>
+  <div id="statusMessage" style="margin-top:12px;font-size:13px;"></div>
+
+  <button id="distributionBtn"
+    onclick="updateStatus('Ready for Distribution')"
+    style="display:none;width:100%;margin-top:12px;padding:13px;border:0;border-radius:12px;background:#7c3aed;color:white;font-weight:700;">
+    🚀 Ready for Distribution
+  </button>
+
+  <button id="distributedBtn"
+    onclick="updateStatus('Distributed')"
+    style="display:none;width:100%;margin-top:12px;padding:13px;border:0;border-radius:12px;background:#16a34a;color:white;font-weight:700;">
+    📡 Distributed
+  </button>
+</div>
+
+<script>
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    async function loadDetails() {
+
+      const content = document.getElementById('content');
+
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+
+      if (!id) {
+        content.innerHTML = `
+          <div class="card">
+            <div class="error">
+              Release ID is missing.
+            </div>
+            <a href="/releases.html" class="back">
+              ← Back to Releases
+            </a>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+
+        const response = await fetch('/api/releases');
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error('Could not load releases');
+        }
+
+        const release = data.releases.find(item => item.id === id);
+        const packageZipName = release.packageZipName || ((release.title || "release") + "-" + (release.artist || "artist") + ".zip");
+
+        if (!release) {
+          content.innerHTML = `
+            <div class="card">
+              <div class="error">
+                Release not found.
+              </div>
+              <a href="/releases.html" class="back">
+                ← Back to Releases
+              </a>
+            </div>
+          `;
+          return;
+        }
+
+        const quality = release.audio.quality || {};
+
+        const sampleRate = quality.sampleRate
+          ? `${quality.sampleRate / 1000} kHz`
+          : 'Unknown';
+
+        const channels = quality.channels === 2
+          ? 'Stereo'
+          : `${quality.channels || 'Unknown'} channels`;
+
+        const bitrate = quality.bitrate
+          ? `${Math.round(quality.bitrate / 1000)} kbps`
+          : 'N/A';
+
+        const cover = release.cover
+          ? `/uploads/${release.cover.storedName}`
+          : '';
+
+        const audio = release.audio && release.audio.storedName
+          ? `/uploads/${release.audio.storedName}`
+          : '';
+
+        content.innerHTML = `
+
+          <div class="card">
+
+            ${
+              cover
+                ? `<img class="cover" src="${cover}" alt="Cover Artwork">`
+                : `<div class="cover"></div>`
+            }
+
+            <div class="title">
+              ${escapeHtml(release.title || 'Untitled Release')}
+            </div>
+
+            <div class="artist">
+              ${escapeHtml(release.artist || 'Unknown Artist')}
+            </div>
+
+            <span class="status">
+              ${escapeHtml(release.status || 'Unknown')}
+            </span>
+
+            <div class="section-title">
+              Release Information
+            </div>
+
+            <div class="details">
+
+              <div class="detail">
+                <div class="label">Release ID</div>
+                <div class="value">
+                  ${escapeHtml(release.id)}
+                </div>
+              </div>
+
+              <div class="detail">
+                <div class="label">Release Type</div>
+                <div class="value">
+                  ${escapeHtml(release.releaseType || '—')}
+                </div>
+              </div>
+
+              <div class="detail">
+                <div class="label">Genre</div>
+                <div class="value">
+                  ${escapeHtml(release.genre || '—')}
+                </div>
+              </div>
+
+              <div class="detail">
+                <div class="label">Language</div>
+                <div class="value">
+                  ${escapeHtml(release.language || '—')}
+                </div>
+              </div>
+
+              <div class="detail">
+                <div class="label">Release Date</div>
+                <div class="value">
+                  ${escapeHtml(release.releaseDate || '—')}
+                </div>
+              </div>
+
+              <div class="detail">
+                <div class="label">Status</div>
+                <div class="value">
+                  ${escapeHtml(release.status || '—')}
+                </div>
+              </div>
+
+            </div>
+
+            <div class="section-title">
+              Audio Information
+            </div>
+
+            <div class="details">
+
+              <div class="detail">
+                <div class="label">Format</div>
+                <div class="value">
+                  ${escapeHtml(
+                    release.audio.format
+                      ? release.audio.format.toUpperCase()
+                      : '—'
+                  )}
+                </div>
+              </div>
+
+              <div class="detail">
+                <div class="label">Sample Rate</div>
+                <div class="value">
+                  ${sampleRate}
+                </div>
+              </div>
+
+              <div class="detail">
+                <div class="label">Channels</div>
+                <div class="value">
+                  ${channels}
+                </div>
+              </div>
+
+              <div class="detail">
+                <div class="label">Bitrate</div>
+                <div class="value">
+                  ${bitrate}
+                </div>
+              </div>
+
+              <div class="detail">
+                <div class="label">Bit Depth</div>
+                <div class="value">
+                  ${quality.bitDepth
+                    ? `${quality.bitDepth}-bit`
+                    : 'Not reported'}
+                </div>
+              </div>
+
+              <div class="detail">
+                <div class="label">File Size</div>
+                <div class="value">
+                  ${release.audio.size
+                    ? `${(release.audio.size / 1024 / 1024).toFixed(2)} MB`
+                    : '—'}
+                </div>
+              </div>
+
+            </div>
+
+            <div class="section-title">
+              Audio File
+            </div>
+
+            <div class="audio-box">
+
+              <div class="audio-name">
+                ${escapeHtml(
+                  release.audio.originalName || 'Audio file'
+                )}
+              </div>
+
+              ${
+                audio
+                  ? `<audio controls src="${audio}"></audio>`
+                  : `<div class="value">Audio unavailable</div>`
+              }
+
+            </div>
+
+            <div class="section-title">
+              Package Information
+            </div>
+
+            <div class="details">
+
+              <div class="detail">
+                <div class="label">Package Format</div>
+                <div class="value">ZIP</div>
+              </div>
+
+              <div class="detail">
+                <div class="label">Package File</div>
+                <div class="value" id="packageFileName">—</div>
+              </div>
+
+              <div class="detail">
+                <div class="label">Package Contents</div>
+                <div class="value">Audio · Artwork · Metadata</div>
+              </div>
+
+            </div>
+
+            <div class="section-title">
+              Download Package
+            </div>
+
+            <a id="packageDownload"
+               href="#"
+               download
+               style="
+                 display:block;
+                 margin-top:10px;
+                 padding:14px 18px;
+                 border-radius:12px;
+                 background:linear-gradient(135deg,#7c5cff,#ff4fa3);
+                 color:#fff;
+                 text-align:center;
+                 text-decoration:none;
+                 font-weight:700;
+               ">
+              ↓ Download Distribution Package
+            </a>
+
+            <div class="section-title">
+              Artwork
+            </div>
+
+            <div class="details">
+
+              <div class="detail">
+                <div class="label">File Name</div>
+                <div class="value">
+                  ${escapeHtml(
+                    release.cover
+                      ? release.cover.originalName
+                      : '—'
+                  )}
+                </div>
+              </div>
+
+              <div class="detail">
+                <div class="label">File Size</div>
+                <div class="value">
+                  ${
+                    release.cover && release.cover.size
+                      ? `${(release.cover.size / 1024 / 1024).toFixed(2)} MB`
+                      : '—'
+                  }
+                </div>
+              </div>
+
+            </div>
+
+            <a href="/releases.html" class="back">
+              ← Back to Releases
+            </a>
+
+          </div>
+
+        `;
+
+        const packageFileNameDisplay =
+          document.getElementById('packageFileName');
+
+        const packageDownloadElement =
+          document.getElementById('packageDownload');
+
+        if (packageFileNameDisplay) {
+          packageFileNameDisplay.textContent = packageZipName;
+        }
+
+        if (packageDownloadElement) {
+          packageDownloadElement.href =
+            '/packages/' + packageZipName;
+        }
+
+        setupManagementButtons();
+
+      } catch (error) {
+
+        content.innerHTML = `
+          <div class="card">
+            <div class="error">
+              Failed to load release details.
+            </div>
+
+            <a href="/releases.html" class="back">
+              ← Back to Releases
+            </a>
+          </div>
+        `;
+
+      }
+
+    }
+
+    loadDetails();
+
+  </script>
+
+
+<script>
+async function updateStatus(newStatus) {
+  const id = new URLSearchParams(location.search).get('id');
+  const message = document.getElementById('statusMessage');
+  const approve = document.getElementById('approveBtn');
+  const reject = document.getElementById('rejectBtn');
+  const distribution = document.getElementById('distributionBtn');
+  const distributed = document.getElementById('distributedBtn');
+
+  if (!id) return;
+
+  approve.disabled = true;
+  reject.disabled = true;
+  if (distribution) distribution.disabled = true;
+  message.textContent = 'Updating...';
+
+  try {
+    const response = await fetch('/api/releases/' + encodeURIComponent(id) + '/status', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: newStatus })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Update failed.');
+    }
+
+    message.textContent = '✓ Status changed to ' + newStatus;
+    message.style.color = '#22c55e';
+
+    approve.style.display = 'none';
+    reject.style.display = 'none';
+    if (distribution) distribution.style.display = 'none';
+
+    setTimeout(() => location.reload(), 700);
+
+  } catch (error) {
+    message.textContent = '✕ ' + error.message;
+    message.style.color = '#ef4444';
+    approve.disabled = false;
+    reject.disabled = false;
+  }
+}
+</script>
+
+
+<script>
+function setupManagementButtons() {
+  const statusText = document.querySelector('.status');
+  const managementBox = document.getElementById('managementBox');
+  const approve = document.getElementById('approveBtn');
+  const reject = document.getElementById('rejectBtn');
+  const distribution = document.getElementById('distributionBtn');
+  const distributed = document.getElementById('distributedBtn');
+
+  if (!managementBox || !approve || !reject) return;
+
+  const status = statusText
+    ? statusText.textContent.trim().toLowerCase()
+    : '';
+
+  if (status === 'approved' || status === 'rejected' ||
+      status === 'ready for distribution' || status === 'distributed') {
+    approve.style.display = 'none';
+    reject.style.display = 'none';
+  }
+
+  if (distribution) {
+    distribution.style.display =
+      status === 'approved' ? 'block' : 'none';
+  }
+
+  if (distributed) {
+    distributed.style.display =
+      (status === 'ready for distribution' || status === 'distributed') ? 'block' : 'none';
+    distributed.disabled = status === 'distributed';
+    distributed.style.opacity = status === 'distributed' ? '0.75' : '1';
+    distributed.style.cursor = status === 'distributed' ? 'default' : 'pointer';
+  }}
+</script>
+
+</div>
+
+</body>
+</html>

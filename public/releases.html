@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XYVORINTH Distribution — Releases</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 50% 0%, #241044 0%, #0b0712 42%, #050308 100%);
+  color:#eee;
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+.container{
+  width:min(100%,760px);
+  margin:auto;
+  padding:28px 24px 60px;
+}
+
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  margin-bottom:48px;
+}
+
+.logo{
+  font-size:26px;
+  font-weight:800;
+  letter-spacing:.4px;
+}
+
+.online{
+  white-space:nowrap;
+  padding:12px 16px;
+  border-radius:30px;
+  background:rgba(60,255,150,.07);
+  border:1px solid rgba(60,255,150,.22);
+  color:#53e891;
+  font-size:13px;
+}
+
+h1{
+  margin:0 0 12px;
+  font-size:48px;
+  line-height:1.05;
+}
+
+.subtitle{
+  margin:0;
+  color:#aaa;
+  font-size:20px;
+}
+
+.search-wrap{
+  margin:38px 0 10px;
+}
+
+.search-wrap input{
+  width:100%;
+  padding:15px;
+  border-radius:14px;
+  background:#171225;
+  border:1px solid #30234a;
+  color:#eee;
+  font-size:14px;
+  outline:none;
+}
+
+.search-wrap input:focus{
+  border-color:#a855f7;
+  box-shadow:0 0 0 3px rgba(168,85,247,.12);
+}
+
+.sort-wrap{
+  margin:12px 0 22px;
+}
+
+.sort-wrap select{
+  width:100%;
+  padding:15px;
+  border-radius:14px;
+  background:#171225;
+  border:1px solid #30234a;
+  color:#eee;
+  font-size:14px;
+  outline:none;
+}
+
+.release-card{
+  margin-bottom:20px;
+  padding:24px;
+  border-radius:24px;
+  background:rgba(23,18,37,.92);
+  border:1px solid #30234a;
+  box-shadow:0 12px 35px rgba(0,0,0,.22);
+}
+
+.release-top{
+  display:flex;
+  gap:22px;
+  align-items:flex-start;
+}
+
+.cover{
+  width:138px;
+  height:138px;
+  flex:0 0 138px;
+  object-fit:cover;
+  border-radius:18px;
+  background:#0f0b18;
+  border:1px solid #392952;
+}
+
+.release-info{
+  min-width:0;
+  flex:1;
+}
+
+.release-title{
+  margin:0 0 8px;
+  font-size:27px;
+  font-weight:800;
+  word-break:break-word;
+}
+
+.release-artist{
+  color:#aaa;
+  font-size:18px;
+  margin-bottom:14px;
+}
+
+.status{
+  display:inline-block;
+  font-size:12px;
+  padding:6px 11px;
+  border-radius:14px;
+  font-weight:700;
+}
+
+.status-approved{
+  background:rgba(34,197,94,.14);
+  color:#4ade80;
+  border:1px solid rgba(34,197,94,.25);
+}
+
+.status-rejected{
+  background:rgba(239,68,68,.14);
+  color:#f87171;
+  border:1px solid rgba(239,68,68,.25);
+}
+
+.status-pending{
+  background:rgba(250,204,21,.14);
+  color:#facc15;
+  border:1px solid rgba(250,204,21,.25);
+}
+
+.meta-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:22px;
+}
+
+.meta{
+  padding:15px;
+  border-radius:15px;
+  background:#100c17;
+}
+
+.meta-label{
+  color:#777;
+  font-size:11px;
+  text-transform:uppercase;
+  margin-bottom:7px;
+}
+
+.meta-value{
+  font-size:15px;
+  color:#ddd;
+  word-break:break-word;
+}
+
+.details-btn{
+  display:block;
+  margin-top:22px;
+  padding:15px;
+  text-align:center;
+  border-radius:14px;
+  background:linear-gradient(135deg,#8b2cff,#e326ff);
+  color:white;
+  text-decoration:none;
+  font-weight:800;
+}
+
+.empty-state{
+  margin:22px 0;
+  padding:32px 20px;
+  text-align:center;
+  border-radius:20px;
+  background:#171225;
+  border:1px solid #30234a;
+}
+
+.empty-icon{
+  font-size:40px;
+  margin-bottom:12px;
+}
+
+.empty-title{
+  font-size:20px;
+  font-weight:800;
+  margin-bottom:8px;
+}
+
+.empty-text{
+  color:#999;
+  font-size:14px;
+  line-height:1.5;
+}
+
+.back{
+  display:inline-block;
+  margin-top:28px;
+  padding:14px 20px;
+  border-radius:14px;
+  background:linear-gradient(135deg,#8b2cff,#e326ff);
+  color:white;
+  text-decoration:none;
+  font-weight:800;
+}
+
+.error{
+  padding:22px;
+  text-align:center;
+  color:#f87171;
+}
+
+@media(max-width:600px){
+  .container{
+    padding:24px 24px 50px;
+  }
+
+  header{
+    margin-bottom:42px;
+  }
+
+  .logo{
+    font-size:24px;
+  }
+
+  .online{
+    font-size:12px;
+    padding:10px 13px;
+  }
+
+  h1{
+    font-size:46px;
+  }
+
+  .subtitle{
+    font-size:19px;
+  }
+
+  .release-top{
+    gap:18px;
+  }
+
+  .cover{
+    width:138px;
+    height:138px;
+    flex-basis:138px;
+  }
+
+  .release-title{
+    font-size:25px;
+  }
+}
+
+@media(max-width:430px){
+  .container{
+    padding-left:18px;
+    padding-right:18px;
+  }
+
+  .release-card{
+    padding:18px;
+  }
+
+  .release-top{
+    gap:14px;
+  }
+
+  .cover{
+    width:125px;
+    height:125px;
+    flex-basis:125px;
+  }
+
+  .release-title{
+    font-size:22px;
+  }
+
+  .release-artist{
+    font-size:16px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+  <div class="logo">XYVORINTH Distribution</div>
+  <div class="online">● System Online</div>
+</header>
+
+<h1 id="pageTitle">Your Releases</h1>
+<p class="subtitle" id="pageSubtitle">Manage your music releases</p>
+
+<div class="search-wrap">
+  <input
+    id="releaseSearch"
+    type="search"
+    placeholder="🔎 Search by title or artist..."
+    autocomplete="off"
+  >
+</div>
+
+<div class="sort-wrap">
+  <select id="sortReleases">
+    <option value="newest">Newest First</option>
+    <option value="oldest">Oldest First</option>
+    <option value="az">Title A–Z</option>
+    <option value="za">Title Z–A</option>
+  </select>
+</div>
+
+<div id="releases">
+  <div class="empty-state">
+    <div class="empty-icon">⏳</div>
+    <div class="empty-title">Loading releases...</div>
+  </div>
+</div>
+
+<a class="back" href="/">← Back to Dashboard</a>
+
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const statusFilter = params.get('status') || '';
+const searchFilter = (params.get('search') || '').trim();
+
+const pageTitle = document.getElementById('pageTitle');
+const pageSubtitle = document.getElementById('pageSubtitle');
+const searchInput = document.getElementById('releaseSearch');
+const sortSelect = document.getElementById('sortReleases');
+const container = document.getElementById('releases');
+
+if (statusFilter) {
+  pageTitle.textContent = statusFilter + ' Releases';
+  pageSubtitle.textContent = 'Showing releases with this status';
+}
+
+searchInput.value = searchFilter;
+
+sortSelect.value = params.get('sort') || 'newest';
+
+function escapeHtml(value){
+  return String(value ?? '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+function getCover(release){
+  if(release.cover && typeof release.cover === 'object'){
+    return release.cover.storedName
+      ? '/uploads/' + release.cover.storedName
+      : '';
+  }
+
+  return release.coverUrl ||
+         release.coverPath ||
+         (release.coverFilename
+           ? '/uploads/' + release.coverFilename
+           : '');
+}
+
+function getAudio(release){
+  if(release.audio && typeof release.audio === 'object'){
+    return release.audio.storedName
+      ? '/uploads/' + release.audio.storedName
+      : '';
+  }
+
+  return release.audioUrl ||
+         release.audioPath ||
+         (release.audioFilename
+           ? '/uploads/' + release.audioFilename
+           : '');
+}
+
+function getStatusClass(status){
+  if(status === 'Approved') return 'status-approved';
+  if(status === 'Rejected') return 'status-rejected';
+  return 'status-pending';
+}
+
+function applyFilters(releases){
+  let result = [...releases];
+
+  if(statusFilter){
+    result = result.filter(release =>
+      (release.status || 'Pending Review') === statusFilter
+    );
+  }
+
+  if(searchFilter){
+    const q = searchFilter.toLowerCase();
+
+    result = result.filter(release => {
+      const title = (release.title || '').toLowerCase();
+      const artist = (release.artist || '').toLowerCase();
+
+      return title.includes(q) || artist.includes(q);
+    });
+  }
+
+  const sortMode = params.get('sort') || 'newest';
+
+  result.sort((a,b) => {
+    if(sortMode === 'newest'){
+      return new Date(b.createdAt || 0) -
+             new Date(a.createdAt || 0);
+    }
+
+    if(sortMode === 'oldest'){
+      return new Date(a.createdAt || 0) -
+             new Date(b.createdAt || 0);
+    }
+
+    const titleA = (a.title || '').toLowerCase();
+    const titleB = (b.title || '').toLowerCase();
+
+    if(sortMode === 'az'){
+      return titleA.localeCompare(titleB);
+    }
+
+    if(sortMode === 'za'){
+      return titleB.localeCompare(titleA);
+    }
+
+    return 0;
+  });
+
+  return result;
+}
+
+function renderEmpty(hasSearch){
+  container.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">${hasSearch ? '🔎' : '🎵'}</div>
+      <div class="empty-title">
+        ${hasSearch ? 'No matching releases' : 'No releases yet'}
+      </div>
+      <div class="empty-text">
+        ${hasSearch
+          ? 'Try a different title or artist name.'
+          : 'Your submitted releases will appear here.'}
+      </div>
+    </div>
+  `;
+}
+
+async function loadReleases(){
+
+  try{
+
+    const response = await fetch('/api/releases');
+
+    if(!response.ok){
+      throw new Error('Failed to load releases');
+    }
+
+    const data = await response.json();
+
+    if(!data.success){
+      throw new Error(data.message || 'Failed to load releases');
+    }
+
+    const releases = applyFilters(data.releases || []);
+
+    if(!releases.length){
+      renderEmpty(Boolean(searchFilter));
+      return;
+    }
+
+    container.innerHTML = '';
+
+    releases.forEach(release => {
+
+      const status = release.status || 'Pending Review';
+      const cover = getCover(release);
+
+      const card = document.createElement('div');
+      card.className = 'release-card';
+
+      card.innerHTML = `
+        <div class="release-top">
+
+          ${
+            cover
+            ? `<img
+                class="cover"
+                src="${escapeHtml(cover)}"
+                alt="${escapeHtml(release.title || 'Release artwork')}"
+                onerror="this.style.display='none'"
+              >`
+            : `<div class="cover"></div>`
+          }
+
+          <div class="release-info">
+
+            <h2 class="release-title">
+              ${escapeHtml(release.title || 'Untitled Release')}
+            </h2>
+
+            <div class="release-artist">
+              ${escapeHtml(release.artist || 'Unknown Artist')}
+            </div>
+
+            <span class="status ${getStatusClass(status)}">
+              ${escapeHtml(status)}
+            </span>
+
+          </div>
+        </div>
+
+        <div class="meta-grid">
+
+          <div class="meta">
+            <div class="meta-label">Format</div>
+            <div class="meta-value">
+              ${escapeHtml(
+  release.audioFormat ||
+  release.format ||
+  release.audio?.format ||
+  'N/A'
+)}
+            </div>
+          </div>
+
+          <div class="meta">
+            <div class="meta-label">Sample Rate</div>
+            <div class="meta-value">
+              ${escapeHtml(
+                (release.sampleRate || release.audio?.quality?.sampleRate)
+                  ? (release.sampleRate || release.audio?.quality?.sampleRate) + ' Hz'
+                  : 'N/A'
+              )}
+            </div>
+          </div>
+
+          <div class="meta">
+            <div class="meta-label">Channels</div>
+            <div class="meta-value">
+              ${escapeHtml(
+                (release.channels || release.audio?.quality?.channels) === 2
+                  ? 'Stereo'
+                  : (release.channels || release.audio?.quality?.channels || 'N/A')
+              )}
+            </div>
+          </div>
+
+          <div class="meta">
+            <div class="meta-label">Bitrate</div>
+            <div class="meta-value">
+              ${escapeHtml(
+  release.bitrate ||
+  release.audio?.quality?.bitrate ||
+  'N/A'
+)}
+            </div>
+          </div>
+
+          <div class="meta">
+            <div class="meta-label">Genre</div>
+            <div class="meta-value">
+              ${escapeHtml(release.genre || 'N/A')}
+            </div>
+          </div>
+
+          <div class="meta">
+            <div class="meta-label">Release Date</div>
+            <div class="meta-value">
+              ${escapeHtml(release.releaseDate || 'N/A')}
+            </div>
+          </div>
+
+        </div>
+
+        <a
+          class="details-btn"
+          href="/details.html?id=${encodeURIComponent(release.id)}"
+        >
+          View Details →
+        </a>
+      `;
+
+      container.appendChild(card);
+    });
+
+  }catch(error){
+
+    console.error(error);
+
+    container.innerHTML = `
+      <div class="error">
+        Failed to load releases.
+      </div>
+    `;
+  }
+}
+
+function updateSearch(){
+  const value = searchInput.value.trim();
+
+  const url = new URL(window.location.href);
+
+  if(value){
+    url.searchParams.set('search', value);
+  }else{
+    url.searchParams.delete('search');
+  }
+
+  window.location.href = url.toString();
+}
+
+function updateSort(){
+  const value = sortSelect.value;
+
+  const url = new URL(window.location.href);
+
+  if(value === 'newest'){
+    url.searchParams.delete('sort');
+  }else{
+    url.searchParams.set('sort', value);
+  }
+
+  window.location.href = url.toString();
+}
+
+searchInput.addEventListener('keydown', event => {
+  if(event.key === 'Enter'){
+    updateSearch();
+  }
+});
+
+sortSelect.addEventListener('change', updateSort);
+
+loadReleases();
+</script>
+
+</body>
+</html>

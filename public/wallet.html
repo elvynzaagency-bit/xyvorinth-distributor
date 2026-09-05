@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artist Wallet — XYVORINTH</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080812;color:#fff;font-family:Arial,sans-serif}
+.container{max-width:900px;margin:auto;padding:24px}
+h1{margin-bottom:6px}
+.sub{color:#999;margin-bottom:25px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{background:#111122;border:1px solid #252542;border-radius:18px;padding:20px}
+.label{color:#999;font-size:13px}
+.value{font-size:28px;font-weight:bold;margin-top:8px}
+.balance{grid-column:span 2}
+.balance .value{font-size:42px}
+button{margin-top:20px;width:100%;padding:14px;border:0;border-radius:12px;background:#ff4fa3;color:white;font-weight:bold;font-size:15px}
+.history{margin-top:20px}
+.row{padding:15px 0;border-bottom:1px solid #252542;display:flex;justify-content:space-between}
+.empty{color:#777;padding:20px 0}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.balance{grid-column:span 1}}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Artist Wallet</h1>
+<div class="sub">XYVORINTH Earnings & Payouts</div>
+
+<div class="grid">
+<div class="card balance">
+<div class="label">Available Balance</div>
+<div class="value" id="available">$0.00</div>
+</div>
+
+<div class="card">
+<div class="label">Pending Balance</div>
+<div class="value" id="pending">$0.00</div>
+</div>
+
+<div class="card">
+<div class="label">Minimum Payout</div>
+<div class="value" id="minimum">$10.00</div>
+</div>
+</div>
+
+<div class="card" style="margin-top:20px">
+<div class="label">Payout Amount</div>
+<input id="payoutAmount" type="number" min="10" step="0.01" placeholder="Enter amount"
+style="width:100%;margin-top:12px;padding:14px;border-radius:12px;border:1px solid #252542;background:#080812;color:#fff;font-size:16px">
+
+<button id="payoutButton" onclick="requestPayout()">Request Payout</button>
+<div id="message"></div>
+</div>
+
+<div class="card history">
+<h2>Payout History</h2>
+<div id="history" class="empty">Loading...</div>
+</div>
+</div>
+
+<script>
+async function loadWallet(){
+ const res=await fetch('/api/wallet');
+ const data=await res.json();
+ if(!data.success)return;
+
+ const w=data.wallet;
+ document.getElementById('available').textContent='$'+Number(w.availableBalance).toFixed(2);
+ document.getElementById('pending').textContent='$'+Number(w.pendingBalance).toFixed(2);
+ document.getElementById('minimum').textContent='$'+Number(w.minimumPayout).toFixed(2);
+
+ const payoutButton = document.getElementById('payoutButton');
+ const available = Number(w.availableBalance);
+ const minimum = Number(w.minimumPayout);
+
+ payoutButton.disabled = available < minimum;
+ payoutButton.style.opacity = available < minimum ? '0.5' : '1';
+ payoutButton.style.cursor = available < minimum ? 'not-allowed' : 'pointer';
+
+ const h=document.getElementById('history');
+
+ if(!w.payouts || !w.payouts.length){
+   h.textContent='No payouts yet.';
+   return;
+ }
+
+ h.innerHTML=w.payouts.map(p=>{
+   const date = p.requestedAt
+     ? new Date(p.requestedAt).toLocaleString()
+     : 'Date unavailable';
+
+   return `
+   <div class="row" style="padding:16px 0;border-bottom:1px solid #1f1f35">
+     <div>
+       <div style="font-size:17px;font-weight:700">
+         $${Number(p.amount).toFixed(2)}
+       </div>
+       <div style="font-size:12px;color:#8888a8;margin-top:5px">
+         ${date}
+       </div>
+     </div>
+     <div style="font-size:13px;font-weight:600">
+       ${p.status}
+     </div>
+   </div>`;
+ }).join('');
+}
+
+async function requestPayout(){
+ const message=document.getElementById('message');
+ const input=document.getElementById('payoutAmount');
+ const button=document.getElementById('payoutButton');
+
+ const amount=Number(input.value);
+ const minimum=Number(document.getElementById('minimum').textContent.replace('$',''));
+ const available=Number(document.getElementById('available').textContent.replace('$',''));
+
+ message.textContent='';
+
+ if(!Number.isFinite(amount) || amount <= 0){
+   message.textContent='Enter a valid payout amount.';
+   return;
+ }
+
+ if(amount < minimum){
+   message.textContent=`Minimum payout is $${minimum.toFixed(2)}.`;
+   return;
+ }
+
+ if(amount > available){
+   message.textContent=`Maximum available payout is $${available.toFixed(2)}.`;
+   return;
+ }
+
+ button.disabled=true;
+ button.style.opacity='0.5';
+ button.style.cursor='not-allowed';
+ message.textContent='Processing...';
+
+ try {
+   const res=await fetch('/api/wallet/payout',{
+     method:'POST',
+     headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({amount})
+   });
+
+   const data=await res.json();
+   message.textContent=data.message || 'Payout request completed.';
+   input.value='';
+   await loadWallet();
+ } catch(error) {
+   message.textContent='Unable to process payout request.';
+ } finally {
+   await loadWallet();
+ }
+}
+
+loadWallet();
+</script>
+</body>
+</html>

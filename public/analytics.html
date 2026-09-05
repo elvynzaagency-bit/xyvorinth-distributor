@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XYVORINTH Analytics</title>
+<style>
+body{
+  margin:0;
+  padding:20px;
+  background:#080810;
+  color:#fff;
+  font-family:Arial,sans-serif;
+}
+h1{margin-bottom:6px}
+.muted{color:#999}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+  margin-top:20px;
+}
+.card{
+  background:#12121d;
+  border:1px solid #29293b;
+  border-radius:16px;
+  padding:18px;
+}
+.value{
+  font-size:28px;
+  font-weight:bold;
+  margin-top:8px;
+}
+.release{
+  margin-top:20px;
+}
+.back{
+  margin-top:20px;
+  padding:12px 18px;
+  border:0;
+  border-radius:12px;
+  background:#24243a;
+  color:white;
+}
+</style>
+</head>
+
+<body>
+
+<h1>📊 Release Analytics</h1>
+<div class="muted">XYVORINTH Distribution Analytics</div>
+
+<div class="grid">
+  <div class="card">
+    <div class="muted">Total Releases</div>
+    <div class="value" id="total">0</div>
+  </div>
+
+  <div class="card">
+    <div class="muted">Distributed</div>
+    <div class="value" id="distributed">0</div>
+  </div>
+
+  <div class="card">
+    <div class="muted">Artists</div>
+    <div class="value" id="artists">0</div>
+  </div>
+
+  <div class="card">
+    <div class="muted">Genres</div>
+    <div class="value" id="genres">0</div>
+  </div>
+</div>
+
+<div class="card release">
+  <strong>Latest Release</strong>
+  <div id="latest" class="muted" style="margin-top:12px">
+    Loading...
+  </div>
+</div>
+
+<button class="back" onclick="location.href='/'">
+  ← Back to Dashboard
+</button>
+
+<script>
+async function loadAnalytics(){
+  try{
+    const res = await fetch('/api/releases');
+    const data = await res.json();
+    const releases = data.releases || [];
+
+    document.getElementById('total').textContent = releases.length;
+
+    document.getElementById('distributed').textContent =
+      releases.filter(r => r.status === 'Distributed').length;
+
+    const artists = new Set(
+      releases.map(r => r.artist).filter(Boolean)
+    );
+
+    const genres = new Set(
+      releases.map(r => r.genre).filter(Boolean)
+    );
+
+    document.getElementById('artists').textContent = artists.size;
+    document.getElementById('genres').textContent = genres.size;
+
+    if(releases.length){
+      const latest = releases[releases.length - 1];
+
+      document.getElementById('latest').innerHTML =
+        '<strong>' + (latest.title || 'Untitled') + '</strong><br>' +
+        (latest.artist || 'Unknown Artist') + '<br>' +
+        'Status: ' + (latest.status || 'Unknown') + '<br>' +
+        'Genre: ' + (latest.genre || '—');
+    }else{
+      document.getElementById('latest').textContent =
+        'No releases yet.';
+    }
+
+  }catch(error){
+    document.getElementById('latest').textContent =
+      'Unable to load analytics.';
+  }
+}
+
+loadAnalytics();
+</script>
+
+</body>
+</html>

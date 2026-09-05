@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Royalty & Earnings — XYVORINTH</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;background:#08070d;color:#fff;
+  font-family:Arial,sans-serif;padding:18px;
+}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.back{font-size:24px;cursor:pointer}
+h1{font-size:22px;margin:0}
+.sub{color:#888;font-size:12px;margin-top:4px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{
+  background:linear-gradient(145deg,#15121e,#0d0c13);
+  border:1px solid #292238;border-radius:17px;padding:18px;
+}
+.label{font-size:11px;color:#999;text-transform:uppercase}
+.value{font-size:27px;font-weight:800;margin-top:8px}
+.full{grid-column:1/-1}
+.section{margin:22px 0 10px;font-size:15px;font-weight:700}
+.row{
+  display:flex;justify-content:space-between;
+  padding:14px 0;border-bottom:1px solid #211d2b;
+}
+.name{font-size:13px}
+.amount{font-weight:700;color:#ff4fa3}
+.empty{color:#777;font-size:13px;padding:18px 0}
+.refresh{
+  margin-left:auto;background:#171321;border:1px solid #302742;
+  color:#fff;border-radius:10px;padding:9px 12px;
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="back" onclick="history.back()">‹</div>
+  <div>
+    <h1>Royalty & Earnings</h1>
+    <div class="sub">Track streams and music revenue</div>
+  </div>
+  <button class="refresh" onclick="loadRoyalties()">↻</button>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <div class="label">Total Streams</div>
+    <div class="value" id="streams">0</div>
+  </div>
+
+  <div class="card">
+    <div class="label">Total Revenue</div>
+    <div class="value" id="revenue">$0.00</div>
+  </div>
+</div>
+
+<div class="section">Artist Wallet</div>
+<div class="card" id="walletCard">
+  <div class="label">Available Balance</div>
+  <div class="value" id="walletAvailable">$0.00</div>
+  <div class="sub" style="margin-top:8px">
+    Pending: <span id="walletPending">$0.00</span>
+    · Minimum payout: <span id="walletMinimum">$0.00</span>
+  </div>
+  <button class="refresh" style="margin-top:14px;margin-left:0"
+    onclick="location.href='/wallet.html'">Open Wallet</button>
+</div>
+
+<div class="section">Platform Earnings</div>
+<div class="card" id="platforms">
+  <div class="empty">No royalty data yet.</div>
+</div>
+
+<div class="section">Release Earnings</div>
+<div class="card" id="releases">
+  <div class="empty">No royalty data yet.</div>
+</div>
+
+<div class="section">Royalty History</div>
+<div class="card" id="history">
+  <div class="empty">No royalty records yet.</div>
+</div>
+
+<script>
+async function loadRoyalties(){
+  try{
+    const res=await fetch('/api/royalties');
+    const data=await res.json();
+
+    if(!data.success)return;
+
+    document.getElementById('streams').textContent =
+      Number(data.summary.streams).toLocaleString();
+
+    document.getElementById('revenue').textContent =
+      '$'+Number(data.summary.revenue).toFixed(2);
+
+    renderMap('platforms',data.summary.byPlatform);
+    loadWallet();
+    renderMap('releases',data.summary.byRelease);
+
+    const history=document.getElementById('history');
+
+    if(!data.records.length){
+      history.innerHTML='<div class="empty">No royalty records yet.</div>';
+      return;
+    }
+
+    history.innerHTML=data.records.slice().reverse().map(r=>`
+      <div class="row">
+        <div>
+          <div class="name">${escapeHtml(r.releaseTitle)}</div>
+          <div class="sub">${escapeHtml(r.platform)} · ${Number(r.streams).toLocaleString()} streams</div>
+        </div>
+        <div class="amount">$${Number(r.revenue).toFixed(4)}</div>
+      </div>
+    `).join('');
+  }catch(e){
+    console.error(e);
+  }
+}
+
+async function loadWallet(){
+  try{
+    const res=await fetch('/api/wallet');
+    const data=await res.json();
+
+    if(!data.success)return;
+
+    const w=data.wallet;
+
+    document.getElementById('walletAvailable').textContent =
+      '$'+Number(w.availableBalance).toFixed(2);
+
+    document.getElementById('walletPending').textContent =
+      '$'+Number(w.pendingBalance).toFixed(2);
+
+    document.getElementById('walletMinimum').textContent =
+      '$'+Number(w.minimumPayout).toFixed(2);
+  }catch(e){
+    console.error(e);
+  }
+}
+
+function renderMap(id,map){
+  const box=document.getElementById(id);
+  const entries=Object.entries(map||{});
+
+  if(!entries.length){
+    box.innerHTML='<div class="empty">No royalty data yet.</div>';
+    return;
+  }
+
+  box.innerHTML=entries.map(([name,value])=>`
+    <div class="row">
+      <div class="name">${escapeHtml(name)}</div>
+      <div class="amount">$${Number(value).toFixed(4)}</div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(v){
+  return String(v).replace(/[&<>"']/g,m=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;',
+    '"':'&quot;',"'":'&#039;'
+  }[m]));
+}
+
+loadRoyalties();
+</script>
+
+</body>
+</html>
