@@ -1,0 +1,7 @@
+node_modules/
+distribution-packages/
+.env
+*.log
+
+public/packages/*.zip
+public/uploads/*.flac
