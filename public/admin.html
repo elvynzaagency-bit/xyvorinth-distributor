@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XYVORINTH Admin</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:
+    radial-gradient(circle at 50% 20%,rgba(150,70,255,.16),transparent 35%),
+    #070711;
+  color:#fff;
+  font-family:Arial,sans-serif;
+}
+.card{
+  width:min(420px,92%);
+  padding:34px;
+  border:1px solid rgba(180,120,255,.22);
+  border-radius:24px;
+  background:rgba(18,15,30,.94);
+  box-shadow:0 20px 70px rgba(0,0,0,.55);
+}
+.logo{
+  text-align:center;
+  font-size:28px;
+  font-weight:800;
+  letter-spacing:3px;
+  margin-bottom:6px;
+}
+.subtitle{
+  text-align:center;
+  color:#aaa2b8;
+  margin-bottom:30px;
+  font-size:14px;
+}
+label{
+  display:block;
+  margin:16px 0 8px;
+  color:#cfc6dc;
+  font-size:13px;
+}
+input{
+  width:100%;
+  padding:14px 15px;
+  border-radius:12px;
+  border:1px solid #30283d;
+  background:#0d0b15;
+  color:#fff;
+  outline:none;
+  font-size:15px;
+}
+input:focus{
+  border-color:#a96cff;
+  box-shadow:0 0 0 3px rgba(169,108,255,.12);
+}
+button{
+  width:100%;
+  margin-top:24px;
+  padding:14px;
+  border:0;
+  border-radius:13px;
+  background:linear-gradient(135deg,#9b5cff,#e44dff);
+  color:#fff;
+  font-weight:700;
+  font-size:15px;
+  cursor:pointer;
+}
+button:disabled{opacity:.6;cursor:not-allowed}
+.status{
+  min-height:20px;
+  margin-top:16px;
+  text-align:center;
+  color:#ff8fae;
+  font-size:13px;
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">XYVORINTH</div>
+  <div class="subtitle">Private Administration</div>
+
+  <form id="loginForm">
+    <label for="username">Username</label>
+    <input id="username" name="username" autocomplete="username" required>
+
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+    <button id="loginButton" type="submit">Sign In</button>
+    <div class="status" id="status"></div>
+  </form>
+</div>
+
+<script>
+const form = document.getElementById('loginForm');
+const button = document.getElementById('loginButton');
+const status = document.getElementById('status');
+
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  button.disabled = true;
+  status.textContent = 'Signing in...';
+
+  try {
+    const response = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        username: document.getElementById('username').value,
+        password: document.getElementById('password').value
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Login failed.');
+    }
+
+    window.location.href = '/distribution.html';
+  } catch (error) {
+    status.textContent = error.message;
+    button.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

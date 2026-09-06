@@ -3,11 +3,147 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { execFile } = require('child_process');
+const crypto = require('crypto');
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 
 const RELEASES_FILE = 'releases.json';
+
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
+const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || '';
+
+const ADMIN_COOKIE = 'xyvorinth_admin';
+const ADMIN_SESSION_TTL = 8 * 60 * 60 * 1000;
+
+const ADMIN_LOGIN_WINDOW = 15 * 60 * 1000;
+const ADMIN_LOGIN_MAX_ATTEMPTS = 8;
+const adminLoginAttempts = new Map();
+
+function getLoginClientKey(req) {
+  return req.ip || req.socket.remoteAddress || 'unknown';
+}
+
+function isLoginRateLimited(req) {
+  const now = Date.now();
+  const key = getLoginClientKey(req);
+  const entry = adminLoginAttempts.get(key);
+
+  if (!entry || now - entry.firstAttempt > ADMIN_LOGIN_WINDOW) {
+    adminLoginAttempts.set(key, {
+      firstAttempt: now,
+      attempts: 0
+    });
+    return false;
+  }
+
+  return entry.attempts >= ADMIN_LOGIN_MAX_ATTEMPTS;
+}
+
+function recordFailedLogin(req) {
+  const now = Date.now();
+  const key = getLoginClientKey(req);
+  const entry = adminLoginAttempts.get(key);
+
+  if (!entry || now - entry.firstAttempt > ADMIN_LOGIN_WINDOW) {
+    adminLoginAttempts.set(key, {
+      firstAttempt: now,
+      attempts: 1
+    });
+    return;
+  }
+
+  entry.attempts += 1;
+}
+
+function clearLoginAttempts(req) {
+  adminLoginAttempts.delete(getLoginClientKey(req));
+}
+
+
+function adminConfigured() {
+  return Boolean(
+    ADMIN_USERNAME &&
+    ADMIN_PASSWORD &&
+    ADMIN_SESSION_SECRET
+  );
+}
+
+function createAdminToken() {
+  const expires = Date.now() + ADMIN_SESSION_TTL;
+  const payload = `${ADMIN_USERNAME}:${expires}`;
+  const signature = crypto
+    .createHmac('sha256', ADMIN_SESSION_SECRET)
+    .update(payload)
+    .digest('hex');
+
+  return Buffer
+    .from(`${payload}:${signature}`)
+    .toString('base64url');
+}
+
+function verifyAdminToken(token) {
+  if (!token || !adminConfigured()) return false;
+
+  try {
+    const decoded = Buffer.from(token, 'base64url').toString('utf8');
+    const parts = decoded.split(':');
+
+    if (parts.length !== 3) return false;
+
+    const [username, expiresText, signature] = parts;
+    const expires = Number(expiresText);
+
+    if (username !== ADMIN_USERNAME || !Number.isFinite(expires)) {
+      return false;
+    }
+
+    if (Date.now() > expires) return false;
+
+    const payload = `${username}:${expires}`;
+    const expected = crypto
+      .createHmac('sha256', ADMIN_SESSION_SECRET)
+      .update(payload)
+      .digest('hex');
+
+    return crypto.timingSafeEqual(
+      Buffer.from(signature),
+      Buffer.from(expected)
+    );
+  } catch {
+    return false;
+  }
+}
+
+function getCookie(req, name) {
+  const header = req.headers.cookie || '';
+
+  for (const part of header.split(';')) {
+    const [key, ...value] = part.trim().split('=');
+
+    if (key === name) {
+      return decodeURIComponent(value.join('='));
+    }
+  }
+
+  return null;
+}
+
+function requireAdmin(req, res, next) {
+  const token = getCookie(req, ADMIN_COOKIE);
+
+  if (!verifyAdminToken(token)) {
+    return res.status(401).json({
+      success: false,
+      message: 'Admin authentication required.'
+    });
+  }
+
+  next();
+}
+
 
 if (!fs.existsSync('public/uploads')) {
   fs.mkdirSync('public/uploads', { recursive: true });
@@ -145,6 +281,102 @@ const upload = multer({
   }
 });
 
+
+app.use(express.json());
+
+app.post('/api/admin/login', (req, res) => {
+  if (isLoginRateLimited(req)) {
+    return res.status(429).json({
+      success: false,
+      message: 'Too many login attempts. Please try again later.'
+    });
+  }
+
+  if (!adminConfigured()) {
+    return res.status(503).json({
+      success: false,
+      message: 'Admin authentication is not configured.'
+    });
+  }
+
+  const { username, password } = req.body || {};
+
+  if (
+    username !== ADMIN_USERNAME ||
+    password !== ADMIN_PASSWORD
+  ) {
+    recordFailedLogin(req);
+
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid admin credentials.'
+    });
+  }
+
+  clearLoginAttempts(req);
+
+  const token = createAdminToken();
+
+  res.cookie(ADMIN_COOKIE, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production' || req.secure,
+    sameSite: 'lax',
+    maxAge: ADMIN_SESSION_TTL,
+    path: '/'
+  });
+
+  res.json({
+    success: true,
+    message: 'Admin login successful.'
+  });
+});
+
+app.post('/api/admin/logout', (req, res) => {
+  res.clearCookie(ADMIN_COOKIE, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production' || req.secure,
+    sameSite: 'lax',
+    path: '/'
+  });
+
+  res.json({
+    success: true,
+    message: 'Logged out successfully.'
+  });
+});
+
+app.get('/api/admin/session', requireAdmin, (req, res) => {
+  res.json({
+    success: true,
+    authenticated: true,
+    username: ADMIN_USERNAME
+  });
+});
+
+
+function requireAdminPage(req, res, next) {
+  const token = getCookie(req, ADMIN_COOKIE);
+
+  if (!verifyAdminToken(token)) {
+    return res.redirect('/admin.html');
+  }
+
+  next();
+}
+
+const ADMIN_PAGES = [
+  'distribution.html',
+  'analytics.html',
+  'royalties.html',
+  'wallet.html'
+];
+
+for (const page of ADMIN_PAGES) {
+  app.get(`/${page}`, requireAdminPage, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', page));
+  });
+}
+
 app.use(express.static('public'));
 
 function checkAudioQuality(filePath, callback) {
@@ -200,6 +432,7 @@ function saveRelease(release) {
 
 app.post(
   '/api/upload',
+  requireAdmin,
   upload.fields([
     { name: 'audio', maxCount: 1 },
     { name: 'cover', maxCount: 1 }
@@ -331,7 +564,7 @@ app.post(
 );
 
 
-app.post('/api/releases/:id/status', express.json(), (req, res) => {
+app.post('/api/releases/:id/status', requireAdmin, express.json(), (req, res) => {
   const { status } = req.body;
 
   if (!['Approved', 'Rejected', 'Pending Review', 'Ready for Distribution', 'Distributed'].includes(status)) {
@@ -430,7 +663,7 @@ function saveWallet(wallet) {
   fs.writeFileSync(WALLET_FILE, JSON.stringify(wallet, null, 2));
 }
 
-app.get('/api/wallet', (req, res) => {
+app.get('/api/wallet', requireAdmin, (req, res) => {
   try {
     res.json({ success: true, wallet: loadWallet() });
   } catch (error) {
@@ -438,7 +671,7 @@ app.get('/api/wallet', (req, res) => {
   }
 });
 
-app.post('/api/wallet/earnings', express.json(), (req, res) => {
+app.post('/api/wallet/earnings', requireAdmin, express.json(), (req, res) => {
   try {
     const amount = Number(req.body.amount);
 
@@ -470,7 +703,7 @@ app.post('/api/wallet/earnings', express.json(), (req, res) => {
   }
 });
 
-app.post('/api/wallet/payout', express.json(), (req, res) => {
+app.post('/api/wallet/payout', requireAdmin, express.json(), (req, res) => {
   try {
     const wallet = loadWallet();
     const amount = Number(req.body.amount);
@@ -526,7 +759,7 @@ app.post('/api/wallet/payout', express.json(), (req, res) => {
   }
 });
 
-app.get('/api/wallet/payouts', (req, res) => {
+app.get('/api/wallet/payouts', requireAdmin, (req, res) => {
   try {
     const wallet = loadWallet();
 
@@ -550,7 +783,7 @@ if (!fs.existsSync(ROYALTIES_FILE)) {
   fs.writeFileSync(ROYALTIES_FILE, '[]');
 }
 
-app.get('/api/royalties', (req, res) => {
+app.get('/api/royalties', requireAdmin, (req, res) => {
   try {
     const royalties = JSON.parse(fs.readFileSync(ROYALTIES_FILE, 'utf8'));
 
@@ -591,7 +824,7 @@ app.get('/api/royalties', (req, res) => {
   }
 });
 
-app.post('/api/royalties/stream', express.json(), (req, res) => {
+app.post('/api/royalties/stream', requireAdmin, express.json(), (req, res) => {
   try {
     const {
       releaseId,

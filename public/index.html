@@ -184,8 +184,8 @@ input:focus,select:focus{border-color:#a55cff}
     </p>
 
     <div class="actions">
-      <button class="btn primary" onclick="showPage('upload')">
-        Upload Release
+      <button class="btn primary" onclick="location.href='/admin.html'">
+        Admin Login
       </button>
       <button class="btn secondary" onclick="location.href='/releases.html'">
         View Releases
@@ -202,15 +202,15 @@ input:focus,select:focus{border-color:#a55cff}
       <strong>Artists</strong>
       <div class="muted">Organize artist metadata</div>
     </div>
-    <div class="card" onclick="location.href='/analytics.html'" style="cursor:pointer">
-      <strong>Analytics</strong>
-      <div class="muted">View distribution analytics</div>
+    <div class="card" onclick="location.href='/admin.html'" style="cursor:pointer">
+      <strong>Admin Panel</strong>
+      <div class="muted">Private distribution management</div>
     </div>
   </div>
 </section>
 
 <!-- UPLOAD -->
-<section id="upload" class="page">
+<section id="upload" class="page" style="display:none!important;">
 
   <div class="back" onclick="showPage('dashboard')">← Dashboard</div>
 
@@ -811,78 +811,6 @@ document.addEventListener('DOMContentLoaded', loadDashboardStats);
   </div>
 </div>
 
-
-<div id="royaltyCard" onclick="location.href='/royalties.html'" style="
-  margin-top:14px;
-  padding:18px;
-  border-radius:16px;
-  background:linear-gradient(135deg,rgba(124,92,255,.12),rgba(255,79,163,.08));
-  border:1px solid #30234a;
-  cursor:pointer;
-">
-  <div style="font-size:12px;color:#aaa;">ROYALTY & EARNINGS</div>
-  <div id="royaltyRevenue" style="font-size:30px;font-weight:800;margin-top:6px;">$0.00</div>
-  <div id="royaltyStreams" style="font-size:12px;color:#999;margin-top:4px;">0 streams</div>
-  <div style="margin-top:12px;color:#8b6cff;font-weight:700;font-size:13px;">
-    View Royalty & Earnings →
-  </div>
-</div>
-
-<script>
-async function loadRoyaltyCard(){
-  try{
-    const response = await fetch('/api/royalties');
-    const data = await response.json();
-    if(data.success){
-      document.getElementById('royaltyRevenue').textContent =
-        '$' + Number(data.summary.revenue).toFixed(2);
-      document.getElementById('royaltyStreams').textContent =
-        Number(data.summary.streams).toLocaleString() + ' streams';
-    }
-  }catch(e){}
-}
-loadRoyaltyCard();
-</script>
-
-<div id="walletCard" onclick="location.href='/wallet.html'" style="
-  margin-top:14px;
-  padding:18px;
-  border-radius:16px;
-  background:linear-gradient(135deg,rgba(255,79,163,.12),rgba(124,92,255,.10));
-  border:1px solid #30234a;
-  cursor:pointer;
-">
-  <div style="font-size:12px;color:#aaa;">ARTIST WALLET</div>
-  <div id="walletBalance" style="font-size:30px;font-weight:800;margin-top:6px;">$0.00</div>
-  <div style="font-size:12px;color:#999;margin-top:4px;">Available Balance</div>
-  <div style="font-size:12px;color:#999;margin-top:8px;">
-    Pending: <span id="walletPending">$0.00</span>
-    · Minimum payout: <span id="walletMinimum">$0.00</span>
-  </div>
-  <div style="margin-top:12px;color:#ff4fa3;font-weight:700;font-size:13px;">
-    View Wallet & Earnings →
-  </div>
-</div>
-
-<script>
-async function loadWalletCard(){
-  try{
-    const response = await fetch('/api/wallet');
-    const data = await response.json();
-    if(data.success){
-      document.getElementById('walletBalance').textContent =
-        '$' + Number(data.wallet.availableBalance).toFixed(2);
-
-      document.getElementById('walletPending').textContent =
-        '$' + Number(data.wallet.pendingBalance).toFixed(2);
-
-      document.getElementById('walletMinimum').textContent =
-        '$' + Number(data.wallet.minimumPayout).toFixed(2);
-    }
-  }catch(e){}
-}
-loadWalletCard();
-</script>
 
 <div id="viewAllReleases" style="margin-top:12px;">
   <a
