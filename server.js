@@ -321,7 +321,7 @@ app.post('/api/admin/login', (req, res) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production' || req.secure,
     sameSite: 'lax',
-    maxAge: ADMIN_SESSION_TTL,
+
     path: '/'
   });
 
